@@ -3,6 +3,7 @@ const jwt = require('jsonwebtoken');
 const argon2 = require('argon2');
 const otpModel = require('../model/otp');
 const userModel = require('../model/user');
+const crypto = require('crypto');
 
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -12,20 +13,18 @@ const transporter = nodemailer.createTransport({
     }
 });
 
-const generateOTP = () => {
-    const token = jwt.sign(
-        { timestamp: Date.now() },
-        process.env.JWT_SECRET || 'your-secret-key',
-        { expiresIn: '5m' }
-    );
-    const otp = parseInt(token.slice(-6).replace(/\D/g, '').padEnd(6, '0').slice(0, 6));
-    return otp.toString().padStart(6, '0');
-};
 
+const generateOTP = () => {
+    return crypto.randomInt(100000, 999999).toString();
+};
 module.exports.register = async (req, res) => {
-    const { email, password, deviceType, ipAddress } = req.body;
+    const { email, password, deviceType } = req.body;
     
     try {
+        const ipAddress = (req.headers['x-forwarded-for']?.split(',')[0] || 
+                       req.socket.remoteAddress || '').replace('::ffff:', '').trim();
+
+
         const existingUser = await userModel.findOne({ email });
         if (existingUser) {
             return res.status(400).json({
@@ -263,10 +262,13 @@ module.exports.resendOTP = async (req, res) => {
 };
 
 module.exports.login = async (req, res) => {
-    const { email, password, deviceType, ipAddress } = req.body;
+    const { email, password, deviceType} = req.body;
 
     try {
         const user = await userModel.findOne({ email });
+        const ipAddress = (req.headers['x-forwarded-for']?.split(',')[0] || 
+        req.socket.remoteAddress || '').replace('::ffff:', '').trim();
+
 
         if (!user) {
             return res.status(400).json({
@@ -284,6 +286,7 @@ module.exports.login = async (req, res) => {
 
         // Check if IP address matches the registered IP
         const isIpMatching = user.ipAddress === ipAddress;
+
 
         if (isIpMatching) {
             // IP matches - direct login without OTP
