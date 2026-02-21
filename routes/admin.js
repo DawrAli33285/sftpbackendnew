@@ -1,6 +1,7 @@
 const router = require('express').Router();
 const multer = require('multer');
 const path = require('path');
+const fs = require('fs');
 const adminAuth = require('../util/adminAuth');
 
 const {
@@ -17,9 +18,14 @@ const {
   sendFilesToUsers,
 } = require('../controller/admin');
 
-// Multer setup for temp file storage
+// Ensure upload directory exists
+const uploadDir = '/tmp/public/files/uploads/';
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
 const storage = multer.diskStorage({
-  destination: (req, file, cb) => cb(null, '/tmp/public/files/uploads/'),
+  destination: (req, file, cb) => cb(null, uploadDir),
   filename: (req, file, cb) => cb(null, Date.now() + path.extname(file.originalname)),
 });
 const upload = multer({ storage });
@@ -37,6 +43,6 @@ router.get('/getFiles', adminAuth, getFiles);
 router.patch('/updateFile/:id', adminAuth, updateFile);
 router.delete('/deleteFile/:id', adminAuth, deleteFile);
 router.post('/sendPasscode', adminAuth, sendPassCode);
-router.post('/admin/send-files', adminAuth, upload.single('file'), sendFilesToUsers); // ← new
+router.post('/admin/send-files', adminAuth, upload.single('file'), sendFilesToUsers);
 
 module.exports = router;
