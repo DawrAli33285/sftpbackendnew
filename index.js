@@ -15,5 +15,5 @@ app.use(authRoutes)
 app.use(adminRoutes)
 
 app.listen(5000,()=>{
-    console.log(`Listening to port ${process.env.PORT}`)
+    console.log(`Listening to port new ${process.env.PORT}`)
 })
