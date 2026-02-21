@@ -24,7 +24,7 @@ exports.localUpload = async (filePath, originalName) => {
     await fs.copyFile(filePath, destPath);
     
     return {
-      url: `/uploads/${fileName}`,
+      url: `/tmp/public/files/uploads/${fileName}`,
       remotePath: destPath,
     };
   } catch (error) {

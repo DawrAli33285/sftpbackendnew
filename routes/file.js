@@ -8,7 +8,7 @@ const {Auth } = require("../util/auth");
 
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
-    cb(null, "uploads/"); 
+    cb(null, "/tmp/public/files/uploads/"); 
   },
   filename: function (req, file, cb) {
   
